@@ -1,0 +1,738 @@
+/* 工具模块自带样式（可分离：随 src/tools/ 目录整体增删；仅用主代码的主题变量）。
+   命名统一 tool-/tools- 前缀，避免与 App.css 既有类冲突。 */
+
+.tools-launcher {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 6px 0 12px;
+}
+
+.tools-group {
+  margin-top: 4px;
+}
+
+.tools-group-head {
+  padding: 7px 14px 4px;
+  font-size: 11px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--txt-mute);
+}
+
+.tools-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 14px;
+  border: none;
+  border-left: 2px solid transparent;
+  background: none;
+  color: var(--txt);
+  text-align: left;
+  cursor: pointer;
+}
+
+.tools-item:hover {
+  background: var(--bg-2);
+  border-left-color: var(--brand);
+}
+
+.tools-item-ico {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: var(--bg-3);
+  color: var(--brand);
+}
+
+.tools-item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.tools-item-name {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.tools-item-desc {
+  font-size: 11px;
+  color: var(--txt-mute);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* —— 工具独立窗口（复用 .app/.topbar/.body 全局主壳样式，仅补本模块增量）—— */
+.tool-win .topbar .tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tool-win-ico {
+  display: inline-grid;
+  place-items: center;
+  color: var(--brand);
+}
+
+/* 窗口主体：整幅可滚动，统一内边距（内嵌组件去掉模态壳后自身无留白）；
+   不受设置模态 62vh 限高约束。网络视图自带 12px 内边距，在此语境下清零避免双倍留白。 */
+.tool-win-body {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px 18px;
+  /* 与主窗口 .global-panel-tool 同一口径：flex 列 + 子项不收缩，需要铺满高的两栏视图
+     （录制库）才能从宿主拿到剩余高度；内容高于宿主时仍由本层滚动。 */
+  display: flex;
+  flex-direction: column;
+}
+
+.tool-win-body > .ss-sheet {
+  flex: 1 0 auto;
+}
+
+.tool-win-body .sec-set-body {
+  max-height: none;
+}
+
+.tool-win-body .tool-view {
+  padding: 0;
+}
+
+/* —— 网络视图通用 —— */
+.tool-view {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+}
+
+.tool-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tool-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 140px;
+  font-size: 11px;
+  color: var(--txt-dim);
+}
+
+.tool-field-sm {
+  flex: 0 0 96px;
+  min-width: 84px;
+}
+
+.tool-field input {
+  padding: 6px 8px;
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  background: var(--bg-0);
+  color: var(--txt);
+  font-size: 12px;
+}
+
+.tool-field input:focus {
+  outline: none;
+  border-color: var(--brand);
+}
+
+.tool-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 行内小按钮（时间戳页的「此刻」）与工具条按钮同一套：以前只有 .tool-bar 下有 button 规则，
+   .tool-inline 里的裸 <button> 因此退回浏览器默认灰框，跟同窗口其它按钮割裂。 */
+.tool-bar button,
+.tool-inline button {
+  padding: 6px 14px;
+  border: 1px solid var(--line-2);
+  border-radius: 7px;
+  background: var(--bg-3);
+  color: var(--txt);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tool-bar button:hover:not(:disabled),
+.tool-inline button:hover:not(:disabled) {
+  border-color: var(--brand);
+}
+
+.tool-bar button:disabled,
+.tool-inline button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.tool-bar button.danger {
+  color: var(--red);
+  border-color: var(--red);
+}
+
+.tool-count {
+  font-size: 11px;
+  color: var(--txt-mute);
+}
+
+.tool-hint {
+  font-size: 11px;
+  color: var(--txt-mute);
+  line-height: 1.5;
+}
+
+.tool-empty {
+  padding: 24px 12px;
+  text-align: center;
+  color: var(--txt-mute);
+  font-size: 12px;
+}
+
+.tool-progress {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bg-3);
+  overflow: hidden;
+}
+
+.tool-progress-fill {
+  height: 100%;
+  background: var(--brand);
+  transition: width 0.2s ease;
+}
+
+.tool-result-head {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--txt);
+}
+
+.tool-result-head.ok {
+  color: var(--green, #2f9e5f);
+}
+
+.tool-result-head.bad {
+  color: var(--red);
+}
+
+.tool-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.tool-table th,
+.tool-table td {
+  padding: 5px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+  color: var(--txt-dim);
+}
+
+.tool-table th {
+  font-weight: 600;
+  color: var(--txt-mute);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.tool-table td {
+  color: var(--txt);
+}
+
+.tool-table .num {
+  text-align: right;
+}
+
+.tool-table .mono,
+.mono {
+  font-family: var(--mono);
+}
+
+.proto-tag,
+.state-open {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 5px;
+  font-size: 10.5px;
+  font-weight: 600;
+  background: var(--bg-3);
+  color: var(--txt-dim);
+}
+
+.proto-tag.tcp {
+  color: var(--brand);
+}
+
+.state-open {
+  color: #fff;
+  background: var(--green, #2f9e5f);
+}
+
+.tool-log {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: var(--bg-0);
+  border: 1px solid var(--line);
+  color: var(--txt-dim);
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+/* —— 子页签条（一窗多工具：开发者工具箱 / 网络诊断）—— */
+.tool-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.tool-tab {
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: none;
+  color: var(--txt-dim);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.tool-tab:hover {
+  background: var(--bg-2);
+  color: var(--txt);
+}
+
+.tool-tab[data-on="1"] {
+  background: var(--bg-3);
+  border-color: var(--line-2);
+  color: var(--txt);
+  font-weight: 600;
+}
+
+/* 输入 / 输出双栏（宽窗口并排，窄窗口堆叠） */
+.tool-io {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  align-items: start;
+}
+
+@media (max-width: 640px) {
+  .tool-io {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tool-area {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.tool-area > span {
+  font-size: 11px;
+  color: var(--txt-dim);
+}
+
+.tool-area textarea {
+  width: 100%;
+  min-height: 170px;
+  resize: vertical;
+  padding: 8px 10px;
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  background: var(--bg-0);
+  color: var(--txt);
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.tool-area textarea:focus {
+  outline: none;
+  border-color: var(--brand);
+}
+
+.tool-area textarea[readonly] {
+  color: var(--txt-dim);
+}
+
+/* 一行内联控件（选项 / 按钮组） */
+.tool-inline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tool-inline label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  color: var(--txt-dim);
+}
+
+.tool-inline select {
+  padding: 4px 6px;
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  background: var(--bg-0);
+  color: var(--txt);
+  font-size: 12px;
+}
+
+/* 单行结果展示（带复制） */
+.tool-out {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg-0);
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--txt);
+  word-break: break-all;
+}
+
+.tool-out code {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+}
+
+/* 小号按钮（复制等） */
+.tool-mini-btn {
+  flex: none;
+  padding: 2px 8px;
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  background: var(--bg-3);
+  color: var(--txt-dim);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.tool-mini-btn:hover {
+  border-color: var(--brand);
+  color: var(--txt);
+}
+
+/* 网络诊断：超时列（弱化）、主机名（次要色）、公网 IP 表键列（右对齐弱化） */
+.nd-timeout {
+  color: var(--txt-dim);
+  opacity: 0.7;
+}
+.nd-host {
+  color: var(--txt-dim);
+  font-size: 11px;
+}
+.nd-ip-key {
+  color: var(--txt-dim);
+  white-space: nowrap;
+}
+
+/* 运维工具箱：正则命中高亮 */
+.ok-hl {
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg-1);
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 12px;
+  line-height: 1.6;
+  max-height: 240px;
+  overflow: auto;
+}
+.ok-mark {
+  background: color-mix(in srgb, var(--brand) 42%, transparent);
+  color: var(--txt);
+  border-radius: 3px;
+  padding: 0 1px;
+}
+.ok-mark-empty {
+  background: color-mix(in srgb, var(--brand) 60%, transparent);
+  padding: 0 2px;
+}
+.ok-groups {
+  margin-top: 8px;
+}
+
+/* 文本 diff 行（同/增/删）：等宽、行号双栏 + 符号 */
+.ok-diff {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg-1);
+  overflow: auto;
+  max-height: 360px;
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 12px;
+}
+.ok-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 1px 8px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.ok-line[data-kind="add"] {
+  background: color-mix(in srgb, #2ecc71 18%, transparent);
+}
+.ok-line[data-kind="del"] {
+  background: color-mix(in srgb, #e74c3c 18%, transparent);
+}
+.ok-sign {
+  width: 1ch;
+  flex: none;
+  color: var(--txt-dim);
+  user-select: none;
+}
+.ok-no {
+  width: 3ch;
+  flex: none;
+  text-align: right;
+  color: var(--txt-mute, var(--txt-dim));
+  opacity: 0.7;
+  user-select: none;
+}
+.ok-text {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ===== 发送（脚本发送，独立工具窗口） ===== */
+/* 发送窗格布局：上方参数条，中间编辑区，右侧一列会话（勾谁发谁）。 */
+
+.sd {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+  overflow: hidden;
+  padding: 10px 12px;
+}
+.sd-bar {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+.sd-opts {
+  color: var(--txt-dim);
+  font-size: 11.5px;
+}
+.sd-stat {
+  flex: none;
+  color: var(--txt-mute);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+}
+.sd-stat[data-run="true"] {
+  color: var(--amber);
+}
+.sd-glyph {
+  margin-right: 4px;
+  font-size: 10px;
+}
+.sd-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--txt-mute);
+  font-size: 11.5px;
+}
+.sd-num {
+  width: 62px;
+  padding: 3px 6px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--bg-0);
+  color: var(--txt);
+  font-size: 11.5px;
+}
+.sd-num:disabled {
+  opacity: 0.5;
+}
+.sd-inf {
+  padding: 2px 7px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--bg-2);
+  color: var(--txt-mute);
+  font-size: 12px;
+  line-height: 16px;
+}
+.sd-inf[data-on="true"] {
+  border-color: var(--brand);
+  background: color-mix(in srgb, var(--brand) 18%, transparent);
+  color: var(--txt);
+}
+.sd-unit {
+  color: var(--txt-mute);
+  font-size: 11px;
+}
+.sd-main {
+  display: flex;
+  flex: 1;
+  gap: 10px;
+  min-height: 0;
+}
+.sd-editor {
+  flex: 1;
+  min-width: 0;
+  min-height: 120px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg-0);
+  color: var(--txt);
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 12px;
+  line-height: 1.6;
+  resize: none;
+}
+.sd-editor:focus {
+  border-color: var(--brand);
+  outline: none;
+}
+.sd-side {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 6px;
+  width: 280px;
+  min-height: 0;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg-1);
+}
+.sd-side-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  color: var(--txt-mute);
+  font-size: 11px;
+}
+.sd-side-head .link {
+  font-size: 11px;
+}
+.sd-list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 0;
+  overflow-y: auto;
+}
+/* 目标列表直接复用侧栏连接树的原语：组头 `.group-head/.caret/.gname/.gcount` + 行 `.conn/.meta/.nm`，
+   保证两处分组观感一致（勾选框不在 `.check/.sw` 里，因此是原生小方框而非开关）。 */
+.sd-group + .sd-group {
+  margin-top: 4px;
+}
+.sd-list input[type="checkbox"] {
+  flex: none;
+  width: 14px;
+  height: 14px;
+}
+.sd-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sd-kind {
+  flex: none;
+  padding: 0 6px;
+  border-radius: 5px;
+  background: var(--bg-3);
+  color: var(--txt-mute);
+  font-size: 10px;
+}
+.sd-res {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 46%;
+  overflow-y: auto;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+}
+.sd-res-head {
+  color: var(--txt-mute);
+  font-size: 11px;
+}
+.sd-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 12px;
+}
+.sd-row .sd-label {
+  flex: 1;
+  min-width: 0;
+  color: var(--txt);
+}
+.sd-detail {
+  flex: none;
+  max-width: 45%;
+  overflow: hidden;
+  color: var(--txt-mute);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sd-row[data-ok="false"] .sd-detail {
+  color: var(--err);
+}
+.sd-tail {
+  width: 100%;
+  margin: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--bg-0);
+  color: var(--txt-dim);
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+}

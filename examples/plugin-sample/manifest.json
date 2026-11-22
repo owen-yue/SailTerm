@@ -1,0 +1,88 @@
+{
+  "id": "com.sailterm.sample.tools",
+  "name": "示例工具包",
+  "version": "0.1.0",
+  "description": "演示插件 UI 注入与能力网关（设置项 / 按钮 / 右键菜单）。",
+  "author": "SailTerm",
+  "permissions": ["log", "notify", "storage", "network", "session_write", "session_exec", "ai_tool"],
+  "settings": [
+    {
+      "key": "api_base",
+      "type": "string",
+      "label": "API 地址",
+      "default": "https://example.com"
+    },
+    {
+      "key": "verbose",
+      "type": "boolean",
+      "label": "详细日志",
+      "default": "false"
+    },
+    {
+      "key": "level",
+      "type": "select",
+      "label": "级别",
+      "default": "info",
+      "options": ["debug", "info", "warn"]
+    }
+  ],
+  "commands": [
+    {
+      "id": "ping_host",
+      "title": "Ping 主机",
+      "template": "ping -c 3 {{arg}}",
+      "description": "对选中主机做连通性检查（只读）"
+    },
+    {
+      "id": "hash_file",
+      "title": "计算文件哈希",
+      "template": "sha256sum {{arg}}",
+      "description": "对右键选中的文件算 SHA256"
+    }
+  ],
+  "buttons": [
+    {
+      "id": "btn_ping",
+      "title": "Ping",
+      "icon": "📡",
+      "target": "topbar",
+      "commandId": "ping_host"
+    }
+  ],
+  "menus": [
+    {
+      "id": "menu_hash",
+      "title": "SHA256 校验",
+      "when": "file",
+      "commandId": "hash_file"
+    }
+  ],
+  "hooks": ["on_output"],
+  "aiTools": [
+    {
+      "id": "cmdb_lookup",
+      "name": "cmdb_lookup",
+      "description": "查询内部 CMDB，返回主机的负责人与所属团队。回答「这台机器归谁 / 找谁负责」类问题时调用。",
+      "requires": "none",
+      "risk": "readonly",
+      "export": "ai_tool_cmdb_lookup",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "host": { "type": "string", "description": "主机名或 IP" }
+        },
+        "required": ["host"]
+      }
+    }
+  ],
+  "aiTools_note": "贡献 AI 技能需同时在 permissions 声明 ai_tool；exec 走本插件 wasm 的 export（签名 (i32,i32,i32,i32)->i64，入参 (tool_name, args_json)，回传 {\"ok\":true,\"text\":...} 或 {\"error\":...}）。risk: readonly 直通 / confirm 每次过审批卡。",
+  "locales": [
+    {
+      "code": "ja",
+      "label": "日本語",
+      "path": "locales/ja.json"
+    }
+  ],
+  "locales_note": "可选：为界面贡献新语言。code 为语言码（不能用保留值 system），path 为插件目录内的平面 JSON（键→文案），启动时自动注册，与内置 zh/en 同权。",
+  "settings_note": "有 wasm 时可导出 on_output；纯命令包可不写 wasm。"
+}

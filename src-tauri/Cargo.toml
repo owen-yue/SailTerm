@@ -1,0 +1,140 @@
+[package]
+name = "sailterm"
+version = "0.1.0"
+description = "SailTerm — AI 增强的安全 SSH 终端"
+authors = ["owen-yue"]
+license = "MIT"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+# The `_lib` suffix may seem redundant but it is necessary
+# to make the lib name unique and wouldn't conflict with the bin name.
+# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
+name = "sailterm_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+# 单实例锁（必须最先注册，见 lib.rs）：二次启动的进程不建 WebView，直接通知首个实例聚焦后退出。
+# 不加它，Windows 下再点一次图标会起第二个进程，与首个进程抢同一份 EBWebView 数据目录——
+# 新窗口的 WebView 环境创建长时间挂住，表现为「白屏好一会才出来」，且两进程并发读写同一份
+# SQLite/保险库本就非预期。官方插件，无额外 TLS 后端，不破坏全树 ring-only 约束。
+tauri-plugin-single-instance = "2"
+tauri-plugin-opener = "2"
+# 原生文件/目录选择框（终端内 rz/sz 触发，EXT-12）
+tauri-plugin-dialog = "2"
+# 原生消息框（看门狗死锁自救弹窗）：rfd 同步 show 只依赖主线程 run loop，
+# tokio 冻结时插件对话框（内部 block_on）不可用，rfd 仍可用。已在树中（dialog 插件依赖），零新增下载。
+rfd = "0.16"
+# 自动更新：GitHub Releases 托管 latest.json + minisign 签名产物，不自建更新服务器（见 tauri.conf.json plugins.updater）
+tauri-plugin-updater = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# SSH 客户端：强制 ring 加密后端（aws-lc-rs 在 Windows 需 NASM/CMake，ring 仅需 MSVC）
+russh = { version = "0.63.3", default-features = false, features = ["ring", "flate2", "rsa"] }
+# SFTP 子系统：3.x 起不再直接依赖 russh，改由 `channel.into_stream()` 对接（其 dev-dep 基线正是 russh 0.63.2，与本项同源）
+russh-sftp = "3.0.0"
+# 文件传输统一抽象（SFTP/FTP 同签名，doc/06 §7.2）：`dyn FileTransfer` 需要 async-trait
+async-trait = "0.1"
+# FTP/FTPS 客户端：`tokio-rustls-ring` 显式点 ring，避开 aws-lc-rs（同上，Windows 要 NASM/CMake）
+suppaftp = { version = "12.0.1", features = ["tokio", "tokio-rustls-ring"] }
+# FTPS 证书校验的信任根（rustls 不自带）；纯数据 crate，无 C/汇编构建步骤
+webpki-roots = "1"
+tokio = { version = "1.53.1", features = ["full"] }
+thiserror = "2.0.20"
+base64 = "0.22"
+rusqlite = { version = "0.40.2", features = ["bundled"] }
+keyring = { version = "4.2.0", features = ["windows-native-keyring-store", "apple-native-keyring-store", "zbus-secret-service-keyring-store"] }
+# 凭证保险库回退加密：锁 0.10（0.11 的 aead 0.6 API 与文档基线不同，见 doc/02 §9.1）
+aes-gcm = "0.10.3"
+zeroize = "1.9.0"
+uuid = { version = "1.26.1", features = ["v4"] }
+# 编码：FTP/FTPS 的文件名编码不由协议统一（服务端未声明 UTF8 时按本地编码，中文即 GBK）。
+# 已在依赖树中（reqwest 的 charset feature 依赖它），提为直接依赖零额外下载。
+encoding_rs = "0.8"
+# 本地终端（EXT-15）：Windows 走 ConPTY（Win10+），Unix 走 openpty；纯 Rust + windows-sys，
+# 无 NASM/CMake 构建步骤，与全树 ring-only 的极简依赖哲学一致（doc/02 §9）。
+portable-pty = "0.9"
+# ZMODEM（EXT-12）：rz/sz 协议状态机，I/O 由调用方驱动；纯 Rust no_std 兼容。
+zmodem2 = "0.7.2"
+# SSH 密钥生成（EXT-9）：PrivateKey::random（rand_core）+ OpenSSH 导出；
+# encryption 供密钥生成器「生成时设私钥口令」（纯 Rust RustCrypto，已在树依赖，不引入 aws-lc）。
+ssh-key = { version = "0.7.0-rc.11", default-features = false, features = ["std", "alloc", "rand_core", "ed25519", "getrandom", "encryption"] }
+# 记忆框架（Mem0 替代）：本地语义记忆，进程内，无云
+uteke-core = { version = "0.18.1", default-features = false, features = ["vecq"] }
+# 插件 WASM 沙箱（EXT-11）：wasmi 解释器 + fuel 限额，纯 Rust 无 JIT/汇编，Windows 友好。
+wasmi = "0.40"
+# 本地系统监控（进程内）
+sysinfo = "0.37"
+# 串口（EXT-11）
+serial2 = "0.2"
+
+# ---- Phase 3：AI 编排（rig provider + 轻量状态机，见 doc/02 §8.3、doc/05 §3）----
+# rig 0.44 起 provider 客户端与 TLS 拆到 rig-reqwest/rig-http 子 crate，且不再有 `agent` feature
+# （Agent 循环移到独立的 rig-agent crate——我们本就不用它，编排用自己的状态机）。
+# 配成 ring-only：default-features=false 丢掉默认的 `rustls`(→rig-reqwest/rustls→reqwest/rustls
+# →硬绑 aws-lc-rs)，只留 derive/reqwest（reqwest 仅把 rig-reqwest 作为依赖引进来，不带任何 TLS 后端）。
+# TLS 改由下面显式的 reqwest `rustls-no-provider` 提供骨架（feature 统一后 rig-reqwest 用的
+# 是同一份 reqwest），运行期在 lib.rs setup 里 `install_default()` 装 ring 作为全局 crypto provider。
+# 与 russh/suppaftp 同源，全树无 aws-lc-rs（升级后须重跑 `cargo tree -i aws-lc-rs` 确认为空）。
+# charset/http2/system-proxy 是升级前由 rig 的 `reqwest` feature 带进来的，0.44 不再带，故在此显式补回。
+rig = { version = "0.44.0", default-features = false, features = ["derive", "reqwest"] }
+rig-memory = "0.44.0"
+reqwest = { version = "0.13", default-features = false, features = ["rustls-no-provider", "json", "stream", "charset", "http2", "system-proxy"] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
+futures = "0.3"
+# 输出脱敏的预编译规则集（doc/04 §6.3）：IP/邮箱/AWS Key/JWT/连接串等模式匹配；
+# 纯 Rust 无 C/汇编，且已在依赖树中（Cargo.lock 已解析 1.13.x），提为直接依赖零额外下载。
+regex = "1"
+# 审计摘要（doc/04 §12 output_digest）：SHA256(脱敏后输出) 的十六进制指纹，审计只存摘要不存原文（INV-3/INV-5）。
+# ring 已是全树唯一加密后端（russh/rustls/suppaftp 皆 ring 0.17），提为直接依赖零额外下载。
+ring = "0.17"
+
+# ---- 附件摄取（doc/05 §附件子系统）：类型识别一律交给现成轮子，不自己维护嗅探表 ----
+# 文件真身判定（magic bytes）：`infer` 早已在树中（tauri-plugin-updater + tauri-utils 依赖），
+# 提为直接依赖零额外下载。不信扩展名只看字节——改个后缀就想让模型把二进制当文本读，不给他开门。
+infer = "0.22"
+# 扩展名 → mime 的权威映射（infer 判不出来时的回退，如 .log/.conf 这类无魔数的纯文本后缀）；
+# 同样已在树中（tauri 的静态资源/响应 MIME 用它），零额外下载。
+mime_guess = "2.0.5"
+# CSV 解析：引号/转义/内嵌换行的正确性，不值得自己写一个 split(',')。纯 Rust 无 C 依赖，
+# 本机注册表缓存已有 1.4.0（与 csv-core），不新增 TLS 后端、不碰 ring-only 约束。
+csv = "1.4"
+# xlsx/xls/ods 读取（doc/05 附件 P2）：OpenDocument 联盟格式一家包了，不拆三个解析器。
+# 关默认 feature：`chrono`(日期单元格反序列化) 与 `picture`(嵌图) 都是抽取文本用不到的负担。
+calamine = { version = "0.37", default-features = false }
+# PDF 文本层抽取（doc/05 附件 P2）：只做「有文本层就取字、没文本层就如实标扫描版」，
+# 不做排版重建，也不做 OCR（那走 P4 且要先过 spike）。关默认 feature 丢 rayon/chrono。
+lopdf = { version = "0.46", default-features = false }
+# docx/pptx 浅抽取（doc/05 附件 P3）：Office Open XML 就是「一个 zip 包里装若干 XML」，
+# 解包用现成的 zip crate（不手搓 inflate + 中央目录）。feature 与 calamine 逐字一致
+# （`default-features=false` + `deflate`）：同一份已解析的 9.1.2、同一条 zopfli（纯 Rust），
+# 零额外下载、不新增 TLS 后端——与本项把 infer/regex/ring 提为直接依赖同源的做法。
+zip = { version = "9", default-features = false, features = ["deflate"] }
+tauri-plugin-notification = "2.8.1"
+
+[features]
+# 开发者工具（浏览器「检查」）：debug 构建默认可用；release 需显式 `--features devtools` 才编入。
+# 运行时 set_devtools 命令与本 feature 门控一致（见 commands/app.rs）。
+devtools = ["tauri/devtools"]
+# dev 保险库后端开关：启用后凭证走本机 AES-256-GCM 加密文件而非 OS 钥匙串。仅
+# scripts/dev-macos.sh 用 `--features dev-file-vault` 编入，规避自签名（无 Team ID）
+# macOS dev 身份下钥匙串 partition 按 cdhash 分区、每次重编译反复弹授权的问题。发布构建不启用。
+dev-file-vault = []
+
+[dev-dependencies]
+tempfile = "3"
+
+
+# Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = 3
+panic = "abort"
+strip = true

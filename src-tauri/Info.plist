@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- macOS「本地网络」隐私门：声明用途后，app 首次访问局域网地址（连内网 SSH/Telnet、Ping、
+         端口扫描等）时系统才会弹「允许访问本地网络」授权框；缺此 key 则静默拒绝（表现为
+         No route to host），且 app 不出现在「隐私与安全性 → 本地网络」列表。Tauri build 时合并进 .app。 -->
+    <key>NSLocalNetworkUsageDescription</key>
+    <string>SailTerm 需要访问本地网络，以便连接局域网内的 SSH / Telnet 主机，并使用 Ping、端口扫描、路由追踪等网络工具。</string>
+</dict>
+</plist>

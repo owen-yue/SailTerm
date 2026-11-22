@@ -1,0 +1,104 @@
+{
+  "id": "com.sailterm.opsdemo",
+  "name": "运维快捷包（演示）",
+  "version": "0.1.0",
+  "description": "演示插件四类能力：设置表单 / 命令包 / UI 注入（顶栏按钮 + 文件右键菜单）/ 界面贡献语言。纯命令包，无需 WASM。",
+  "author": "SailTerm",
+  "permissions": ["session_exec", "storage", "log", "notify"],
+  "settings": [
+    {
+      "key": "proc_filter",
+      "type": "string",
+      "label": "进程过滤关键词",
+      "default": "nginx"
+    },
+    {
+      "key": "head_lines",
+      "type": "number",
+      "label": "输出行数上限",
+      "default": "15"
+    },
+    {
+      "key": "output_style",
+      "type": "select",
+      "label": "输出风格（演示下拉）",
+      "default": "simple",
+      "options": ["simple", "detailed"]
+    }
+  ],
+  "commands": [
+    {
+      "id": "disk_overview",
+      "title": "磁盘概览",
+      "template": "df -h",
+      "description": "各挂载点空间占用（只读）"
+    },
+    {
+      "id": "mem_usage",
+      "title": "内存使用",
+      "template": "free -m",
+      "description": "内存与交换占用（只读）"
+    },
+    {
+      "id": "sys_info",
+      "title": "系统信息",
+      "template": "uname -a",
+      "description": "内核与主机基本信息（只读）"
+    },
+    {
+      "id": "ps_filter",
+      "title": "进程过滤",
+      "template": "ps aux | grep {{proc_filter}} | head -n {{head_lines}}",
+      "description": "按「进程过滤关键词」筛进程，取前若干行（只读）"
+    },
+    {
+      "id": "tail_file",
+      "title": "查看文件尾部",
+      "template": "tail -n {{head_lines}} {{arg}}",
+      "description": "对右键选中的文件看尾部若干行（只读）"
+    },
+    {
+      "id": "du_dir",
+      "title": "目录占用排行",
+      "template": "du -sh {{arg}}/* | sort -h | tail -n {{head_lines}}",
+      "description": "对右键选中的目录做占用统计（只读）"
+    }
+  ],
+  "buttons": [
+    {
+      "id": "btn_disk",
+      "title": "磁盘概览",
+      "icon": "🧭",
+      "target": "topbar",
+      "commandId": "disk_overview"
+    },
+    {
+      "id": "btn_sysinfo",
+      "title": "系统信息",
+      "icon": "🖥",
+      "target": "topbar",
+      "commandId": "sys_info"
+    }
+  ],
+  "menus": [
+    {
+      "id": "menu_tail",
+      "title": "尾部 15 行",
+      "when": "file",
+      "commandId": "tail_file"
+    },
+    {
+      "id": "menu_du",
+      "title": "目录占用排行",
+      "when": "dir",
+      "commandId": "du_dir"
+    }
+  ],
+  "locales": [
+    {
+      "code": "ko",
+      "label": "한국어",
+      "path": "locales/ko.json"
+    }
+  ]
+}
