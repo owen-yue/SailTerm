@@ -60,6 +60,14 @@ Rust 核心（src-tauri/，单进程独占敏感面）
 - **文件**：双栏 SFTP/FTP 浏览器、远端编辑「写回前确认」、传输队列与断点续传
 - **效率**：命令片段（变量占位）、多机群发、SSH 本地端口转发、会话监控、会话录制回放、加密导入/导出连接、主题、中英双语、插件系统
 
+## 下载
+
+去 **[Releases](https://github.com/owen-yue/SailTerm/releases)** 下载：
+
+- **macOS（Apple 芯片 / Apple Silicon）**：`SailTerm_0.1.0_aarch64.dmg`——打开后把 SailTerm.app 拖进「应用程序」。
+  > 本版本用自建证书签名、**未经 Apple 公证（notarization）**。首次打开若被 Gatekeeper 拦截，**右键点 app → 打开 → 再点「打开」**一次即可（或执行 `xattr -cr /Applications/SailTerm.app`）。
+- **Intel macOS / Windows / Linux**：暂无预编译包，可从源码构建（见下）。
+
 ## 开发
 
 环境要求：**Node.js 20+（pnpm）**、**Rust stable**，以及 Tauri 2 平台依赖（macOS 需 Xcode CLT；Windows 需 WebView2 + C++ Build Tools；Linux 需 `webkit2gtk` 等）。
@@ -81,13 +89,13 @@ pnpm tauri build     # 生产构建（安装包在 src-tauri/target/release/bund
 - **Linux**：`bash scripts/package-linux.sh`（deb / rpm / AppImage，按 Tauri 配置）。
 - **Windows**：`pwsh scripts/package.ps1`。
 
-发布流程与签名/公证现状见 [RELEASE.md](RELEASE.md)（当前为未签名构建，首次启动需手动放行 Gatekeeper）。
+发布流程与签名/公证现状见 [RELEASE.md](RELEASE.md)（macOS 包用自建证书签名、未经 Apple 公证，首次启动需手动放行 Gatekeeper）。
 
 ## 平台状态
 
 - **macOS** 为主要平台，已真机验证。
 - **Windows / Linux** 可同工具链编译，但尚未真机验证——视为实验性，欢迎报 bug。
-- 当前是**早期预览版（0.x）**：暂无预编译包与 CI，请从源码构建。
+- 当前是**早期预览版（0.x）**：macOS（Apple 芯片）已提供预编译 dmg（见 [Releases](https://github.com/owen-yue/SailTerm/releases)），其他平台请从源码构建。
 
 ## 关于注释语言
 

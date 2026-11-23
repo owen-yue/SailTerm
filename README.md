@@ -60,6 +60,14 @@ Rust core (src-tauri/, single process owning the sensitive surface)
 - **Files**: dual-pane SFTP/FTP browser, remote editing with confirm-before-write, transfer queue with resume
 - **Productivity**: command snippets with variables, multi-host broadcast, SSH local port forwarding, session monitor, session recording & playback, sealed (encrypted) connection export/import, themes, i18n (zh/en), plugin system
 
+## Download
+
+Grab a build from **[Releases](https://github.com/owen-yue/SailTerm/releases)**:
+
+- **macOS (Apple Silicon)**: `SailTerm_0.1.0_aarch64.dmg` — open it and drag SailTerm.app into Applications.
+  > This build is signed with a self-signed certificate and **not notarized by Apple**. If Gatekeeper blocks the first launch, **right-click the app → Open → click Open again** once (or run `xattr -cr /Applications/SailTerm.app`).
+- **Intel macOS / Windows / Linux**: no prebuilt binary yet — build from source (below).
+
 ## Development
 
 Requirements: **Node.js 20+ with pnpm**, **Rust stable**, plus Tauri 2 platform deps (Xcode CLT on macOS; WebView2 + C++ Build Tools on Windows; `webkit2gtk` on Linux).
@@ -81,13 +89,13 @@ pnpm tauri build     # production build (per-platform installer in src-tauri/tar
 - **Linux**: `bash scripts/package-linux.sh` (deb/rpm/AppImage per Tauri config).
 - **Windows**: `pwsh scripts/package.ps1`.
 
-The release flow and the current signing/notarization status are described in [RELEASE.md](RELEASE.md) (builds are unsigned for now; on first launch you must allow Gatekeeper manually).
+The release flow and the current signing/notarization status are described in [RELEASE.md](RELEASE.md) (the macOS build is signed with a self-signed certificate and not notarized; on first launch you must allow Gatekeeper manually).
 
 ## Platform status
 
 - **macOS** is the primary platform, verified on real hardware.
 - **Windows / Linux** compile through the same toolchain but are not yet hardware-validated — treat them as experimental; bug reports welcome.
-- This is an **early preview (0.x)**. No prebuilt binaries or CI yet — build from source.
+- This is an **early preview (0.x)**. A prebuilt dmg is available for macOS (Apple Silicon) on [Releases](https://github.com/owen-yue/SailTerm/releases); build other platforms from source.
 
 ## A note on language
 
