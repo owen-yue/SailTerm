@@ -27,19 +27,14 @@ In short: the model sees your problem, never your keys. Full trust boundaries ar
 
 Two process layers, one narrow bridge: the renderer holds no credentials and makes no network requests — everything sensitive lives in the Rust core.
 
-```
-Renderer (WebView)   React 19 + TypeScript + Vite
-  xterm.js terminal · file / transfer / monitor / audit panels · lightweight store · i18n · themes
-  every Tauri call funnels through src/lib/tauri/ — no credentials, no network
-       │  commands (invoke, parameterized)
-       ▼  ▲  event streams (terminal bytes / transfer progress / streamed AI tokens)
-Rust core (src-tauri/, single process owning the sensitive surface)
-  commands  IPC entry — the only surface the frontend can call
-  session · ssh · mosh · telnet · serial   SSH / SFTP / FTP / Telnet / serial / Mosh sessions (russh · suppaftp)
-  vault     credential vault: OS keychain (AES-256-GCM file as fallback)
-  ai · sanitize   orchestration state machine · sanitizer · policy engine · approval · audit · multi-model providers (BYOK)
-  files · db · plugin   transfer queue & cache · SQLite (WAL) + migrations · session recordings · local plugins
-```
+- **Renderer (WebView)** — React 19 + TypeScript + Vite: xterm.js terminal, file / transfer / monitor / audit panels, a lightweight store, i18n and themes. Every Tauri call funnels through `src/lib/tauri/` — no credentials, no network.
+- **Rust core (`src-tauri/`)** — a single process owning the sensitive surface:
+  - `commands`: IPC entry — the only surface the frontend can call
+  - `session`: SSH / SFTP / FTP / Telnet / serial / Mosh sessions (russh · suppaftp)
+  - `vault`: credential vault — OS keychain (AES-256-GCM file as fallback)
+  - `ai`: orchestration state machine · sanitizer · policy engine · approval · audit · multi-model providers (BYOK)
+  - `files` / `db` / `plugin`: transfer queue & cache · SQLite (WAL) + migrations · session recordings · local plugins
+- Only two channels cross the seam: **commands (invoke)**, downward, and **event streams** (terminal bytes / transfer progress / streamed AI tokens), upward.
 
 - **The seam is enforced, not just promised**: any frontend file outside `src/lib/tauri/` that touches the Tauri API is rejected by a lint script (`scripts/check-ipc-boundary.sh`); the only two outbound paths are AI provider requests and the SSH/FTP connections themselves, both inside the Rust core.
 - **One AI turn, end to end** (where the security model lands architecturally): question → context assembly (archived output already sanitized) → provider replies or calls a tool → policy engine tiers the risk (read-only / write / high-risk) → writes and worse suspend for human approval (editable) → execution goes through the already-open session handle (`session_id`) → output sanitized again before feeding back to the model → loop until an answer. Credentials are in none of these boxes.

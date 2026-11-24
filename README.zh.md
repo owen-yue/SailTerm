@@ -27,19 +27,14 @@
 
 两个进程层，中间一条窄桥：渲染层零凭证、零联网，一切敏感操作集中在 Rust 核心。
 
-```
-渲染层（WebView）  React 19 + TypeScript + Vite
-  xterm.js 终端 · 文件/传输/监控/审计面板 · 轻量 store（stores/）· i18n · 主题
-  全部 Tauri 调用收口于 src/lib/tauri/ —— 零凭证、不联网
-       │  命令 invoke（参数化）
-       ▼  ▲  事件流（终端字节 / 传输进度 / AI 流式 token）
-Rust 核心（src-tauri/，单进程独占敏感面）
-  commands  IPC 入口，前端唯一可调用面
-  session · ssh · mosh · telnet · serial   SSH / SFTP / FTP / Telnet / 串口 / Mosh 会话（russh · suppaftp）
-  vault     凭证保险库：OS 钥匙串（不可用时回退 AES-256-GCM 加密文件）
-  ai · sanitize   编排状态机 · 脱敏器 · 策略引擎 · 审批 · 审计 · 多模型 provider（BYOK）
-  files · db · plugin   传输队列与缓存 · SQLite（WAL）+ 迁移 · 会话录制 · 本地插件
-```
+- **渲染层（WebView）** — React 19 + TypeScript + Vite：xterm.js 终端、文件 / 传输 / 监控 / 审计面板、轻量 store（stores/）、i18n、主题；全部 Tauri 调用收口于 `src/lib/tauri/`，零凭证、不联网。
+- **Rust 核心（`src-tauri/`）** — 单进程独占敏感面：
+  - `commands`：IPC 入口，前端唯一可调用面
+  - `session`：SSH / SFTP / FTP / Telnet / 串口 / Mosh 会话（russh · suppaftp）
+  - `vault`：凭证保险库，OS 钥匙串（不可用时回退 AES-256-GCM 加密文件）
+  - `ai`：编排状态机 · 脱敏器 · 策略引擎 · 审批 · 审计 · 多模型 provider（BYOK）
+  - `files` / `db` / `plugin`：传输队列与缓存 · SQLite（WAL）+ 迁移 · 会话录制 · 本地插件
+- 两层之间只有两条通道：**命令 invoke**（参数化，向下）与**事件流**（终端字节 / 传输进度 / AI 流式 token，向上）。
 
 - **边界是强制的，不是约定俗成的**：除 `src/lib/tauri/` 外任何前端代码引用 Tauri API 都会被 lint 脚本（`scripts/check-ipc-boundary.sh`）拦截在 CI 之前；出网只发生在 Rust 核心的两个口——AI provider 请求与 SSH/FTP 连接本身。
 - **AI 一轮请求的通路**（安全模型在架构上的落点）：提问 → 组装上下文（历史输出均已脱敏）→ provider 生成回复/工具调用 → 策略引擎按风险分级（只读 / 写 / 高危）→ 写与高危挂起等待人工审批（可改判）→ 经已建立的会话句柄（`session_id`）执行 → 输出脱敏后回填模型 → 循环直至给出答案。凭证不在这条链的任何一格。
